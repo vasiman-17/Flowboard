@@ -298,8 +298,8 @@ body {
 
 /* ── Node Palette (Sidebar) ──────────────────────────────────────────────── */
 .node-palette {
-  width: 280px;
-  min-width: 280px;
+  width: 320px;
+  min-width: 320px;
   background: var(--bg-glass);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -308,6 +308,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   z-index: 50;
+  height: 100vh;
 }
 
 .palette-header {
