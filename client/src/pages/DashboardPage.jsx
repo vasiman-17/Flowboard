@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/workflows';
 import { motion } from 'framer-motion';
+import DashboardLayout from '../components/DashboardLayout';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
   const [deleteId, setDeleteId] = useState(null);
 
   useEffect(() => {
@@ -35,236 +35,308 @@ const DashboardPage = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', color: 'var(--text-primary)' }}>
-      {/* TOP HEADER */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>Flowboard</h1>
-          <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: 'var(--text-secondary)' }}>Welcome, {user?.name || 'User'}</p>
-        </div>
-        <motion.button onClick={handleLogout} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} style={{ background: 'transparent', border: '1px solid var(--accent-rose)', padding: '10px 20px', borderRadius: '6px', color: 'var(--accent-rose)', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>
-          Logout
-        </motion.button>
-      </motion.div>
+    <DashboardLayout activeTab="dashboard">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        {/* Welcome Section */}
+        <motion.div variants={fadeInUp} style={{ marginBottom: '60px' }}>
+          <h1 style={{ fontSize: '42px', fontWeight: '800', marginBottom: '12px' }}>
+            Welcome Back
+          </h1>
+          <p style={{ fontSize: '16px', color: '#a0a0b8' }}>
+            Here's what's happening with your workflows today
+          </p>
+        </motion.div>
 
-      {/* NAVIGATION TABS */}
-      <div style={{ padding: '40px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '20px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '20px' }}>
-          {['overview', 'workflows', 'templates', 'analytics'].map((tab) => (
-            <motion.button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              whileHover={{ color: 'var(--accent-indigo)' }}
+        {/* Quick Stats */}
+        <motion.div
+          variants={fadeInUp}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '24px',
+            marginBottom: '60px'
+          }}
+        >
+          {[
+            { label: 'Total Workflows', value: workflows.length, change: '+2 this week' },
+            { label: 'Last Execution', value: '2 hours ago', change: 'All successful' },
+            { label: 'Success Rate', value: '98.5%', change: 'Excellent' },
+            { label: 'Data Processed', value: '45.2 GB', change: 'This month' }
+          ].map((stat, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ y: -8 }}
               style={{
-                background: 'none',
-                border: 'none',
-                color: activeTab === tab ? 'var(--accent-indigo)' : 'var(--text-secondary)',
-                fontSize: '14px',
-                fontWeight: activeTab === tab ? '600' : '400',
+                background: 'linear-gradient(135deg, #1e1e2e 0%, #2a1a4a 100%)',
+                border: '1px solid rgba(99, 102, 241, 0.2)',
+                borderRadius: '12px',
+                padding: '32px',
                 cursor: 'pointer',
-                textTransform: 'capitalize',
-                paddingBottom: activeTab === tab ? '8px' : 0,
-                borderBottom: activeTab === tab ? '2px solid var(--accent-indigo)' : 'none',
+                transition: 'all 0.3s ease'
               }}
             >
-              {tab}
-            </motion.button>
-          ))}
-        </div>
-      </div>
-
-      {/* MAIN CONTENT */}
-      <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
-        {/* OVERVIEW TAB */}
-        {activeTab === 'overview' && (
-          <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginBottom: '60px' }}>
-              <StatCard icon="📊" label="Total Workflows" value={workflows.length} />
-              <StatCard icon="⚡" label="Last Run" value="5 min ago" />
-              <StatCard icon="✅" label="Success Rate" value="98.5%" />
-              <StatCard icon="🚀" label="Executions This Month" value={workflows.length * 12} />
-            </div>
-
-            <motion.div variants={itemVariants} style={{ marginTop: '40px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '20px' }}>Quick Actions</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                <ActionCard icon="➕" title="Create Workflow" desc="Start building a new workflow" onClick={handleNewWorkflow} />
-                <ActionCard icon="📚" title="View Templates" desc="Browse workflow templates" onClick={() => setActiveTab('templates')} />
-                <ActionCard icon="📖" title="Documentation" desc="Learn how to use Flowboard" onClick={() => window.open('#')} />
-                <ActionCard icon="⚙️" title="Settings" desc="Manage your account" onClick={() => {}} />
+              <div style={{ fontSize: '14px', color: '#a0a0b8', marginBottom: '12px', fontWeight: '500' }}>
+                {stat.label}
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px' }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: '12px', color: '#6b6b82' }}>
+                {stat.change}
               </div>
             </motion.div>
-          </motion.div>
-        )}
+          ))}
+        </motion.div>
 
-        {/* WORKFLOWS TAB */}
-        {activeTab === 'workflows' && (
-          <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>Your Workflows</h2>
-              <motion.button onClick={handleNewWorkflow} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} style={{ background: 'var(--gradient-brand)', border: 'none', padding: '12px 24px', borderRadius: '6px', color: 'white', fontWeight: '600', cursor: 'pointer' }}>
-                + New Workflow
+        {/* Quick Actions */}
+        <motion.div variants={fadeInUp} style={{ marginBottom: '60px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px' }}>
+            Quick Actions
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px'
+          }}>
+            <motion.button
+              onClick={handleNewWorkflow}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                padding: '24px',
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                border: 'none',
+                borderRadius: '10px',
+                color: 'white',
+                fontWeight: '700',
+                cursor: 'pointer',
+                fontSize: '16px',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              ➕ Create Workflow
+            </motion.button>
+            <motion.button
+              onClick={() => navigate('/templates')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                padding: '24px',
+                background: 'transparent',
+                border: '2px solid rgba(99, 102, 241, 0.3)',
+                borderRadius: '10px',
+                color: '#6366f1',
+                fontWeight: '700',
+                cursor: 'pointer',
+                fontSize: '16px',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              📋 Browse Templates
+            </motion.button>
+            <motion.button
+              onClick={() => navigate('/showcase')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                padding: '24px',
+                background: 'transparent',
+                border: '2px solid rgba(99, 102, 241, 0.3)',
+                borderRadius: '10px',
+                color: '#6366f1',
+                fontWeight: '700',
+                cursor: 'pointer',
+                fontSize: '16px',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              🎨 Gallery
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Recent Workflows */}
+        <motion.div variants={fadeInUp}>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px' }}>
+            Recent Workflows
+          </h2>
+          {loading ? (
+            <p style={{ textAlign: 'center', color: '#a0a0b8' }}>Loading...</p>
+          ) : workflows.length === 0 ? (
+            <div style={{
+              background: '#151520',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              borderRadius: '12px',
+              padding: '60px 40px',
+              textAlign: 'center',
+              color: '#a0a0b8'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>✨</div>
+              <p>No workflows yet. Create your first one to get started!</p>
+              <motion.button
+                onClick={handleNewWorkflow}
+                whileHover={{ scale: 1.05 }}
+                style={{
+                  marginTop: '20px',
+                  padding: '12px 28px',
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: 'white',
+                  fontWeight: '700',
+                  cursor: 'pointer'
+                }}
+              >
+                Create First Workflow
               </motion.button>
             </div>
-
-            {loading ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Loading workflows...</p>
-            ) : workflows.length === 0 ? (
-              <EmptyState onClick={handleNewWorkflow} />
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
-                {workflows.map((w) => (
-                  <WorkflowCard key={w._id} workflow={w} onEdit={() => navigate(`/editor/${w._id}`)} onDelete={() => setDeleteId(w._id)} />
-                ))}
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* TEMPLATES TAB */}
-        {activeTab === 'templates' && (
-          <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-            <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '30px' }}>Workflow Templates</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-              {[
-                { name: 'Data Transformation', desc: 'Clean and transform API responses', type: 'transform' },
-                { name: 'Form Validation', desc: 'Validate and process form submissions', type: 'validation' },
-                { name: 'Report Generation', desc: 'Generate and format reports', type: 'reporting' },
-                { name: 'SMS Notifications', desc: 'Send alerts and notifications', type: 'automation' },
-              ].map((template, i) => (
-                <TemplateCard key={i} template={template} />
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
+              {workflows.map((w) => (
+                <motion.div
+                  key={w._id}
+                  whileHover={{ y: -8 }}
+                  style={{
+                    background: 'linear-gradient(135deg, #1e1e2e 0%, #2a1a4a 100%)',
+                    border: '1px solid rgba(99, 102, 241, 0.2)',
+                    borderRadius: '12px',
+                    padding: '24px'
+                  }}
+                >
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px', color: '#ffffff' }}>
+                    {w.name}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#a0a0b8', marginBottom: '16px' }}>
+                    {w.nodes?.length || 0} nodes •Updated {w.updatedAt ? new Date(w.updatedAt).toLocaleDateString() : 'Never'}
+                  </p>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <motion.button
+                      onClick={() => navigate(`/editor/${w._id}`)}
+                      whileHover={{ scale: 1.05 }}
+                      style={{
+                        flex: 1,
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        border: 'none',
+                        padding: '10px',
+                        borderRadius: '6px',
+                        color: 'white',
+                        fontWeight: '600',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Edit
+                    </motion.button>
+                    <motion.button
+                      onClick={() => setDeleteId(w._id)}
+                      whileHover={{ scale: 1.05 }}
+                      style={{
+                        flex: 1,
+                        background: 'transparent',
+                        border: '1px solid #f43f5e',
+                        padding: '10px',
+                        borderRadius: '6px',
+                        color: '#f43f5e',
+                        fontWeight: '600',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Delete
+                    </motion.button>
+                  </div>
+                </motion.div>
               ))}
             </div>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
+      </motion.div>
 
-        {/* ANALYTICS TAB */}
-        {activeTab === 'analytics' && (
-          <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-            <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '30px' }}>Analytics</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
-              <AnalyticsCard title="Workflow Execution Trend" stats="↑ 23% this week" />
-              <AnalyticsCard title="Average Execution Time" stats="2.3 seconds" />
-              <AnalyticsCard title="Total Nodes Created" stats={workflows.reduce((sum, w) => sum + (w.nodes?.length || 0), 0)} />
+      {/* Delete Modal */}
+      {deleteId && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            style={{
+              background: '#1e1e2e',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+              borderRadius: '12px',
+              padding: '32px',
+              maxWidth: '400px'
+            }}
+          >
+            <h3 style={{ marginBottom: '12px', color: '#ffffff' }}>Delete Workflow?</h3>
+            <p style={{ marginBottom: '24px', color: '#a0a0b8', fontSize: '14px' }}>This cannot be undone.</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <motion.button
+                onClick={() => setDeleteId(null)}
+                whileHover={{ scale: 1.05 }}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  padding: '10px',
+                  borderRadius: '6px',
+                  color: '#a0a0b8',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Cancel
+              </motion.button>
+              <motion.button
+                onClick={async () => {
+                  await api.remove(deleteId);
+                  setWorkflows(workflows.filter((w) => w._id !== deleteId));
+                  setDeleteId(null);
+                }}
+                whileHover={{ scale: 1.05 }}
+                style={{
+                  flex: 1,
+                  background: '#f43f5e',
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: '6px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Delete
+              </motion.button>
             </div>
           </motion.div>
-        )}
-      </div>
-
-      {/* DELETE MODAL */}
-      {deleteId && (
-        <DeleteModal
-          onConfirm={async () => {
-            await api.remove(deleteId);
-            setWorkflows(workflows.filter((w) => w._id !== deleteId));
-            setDeleteId(null);
-          }}
-          onCancel={() => setDeleteId(null)}
-        />
+        </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 };
-
-// STAT CARD COMPONENT
-const StatCard = ({ icon, label, value }) => (
-  <motion.div whileHover={{ y: -4 }} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', padding: '24px' }}>
-    <div style={{ fontSize: '32px', marginBottom: '12px' }}>{icon}</div>
-    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 8px 0' }}>{label}</p>
-    <p style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>{value}</p>
-  </motion.div>
-);
-
-// ACTION CARD COMPONENT
-const ActionCard = ({ icon, title, desc, onClick }) => (
-  <motion.div onClick={onClick} whileHover={{ scale: 1.02 }} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '12px', padding: '24px', cursor: 'pointer', transition: 'all 0.3s' }}>
-    <div style={{ fontSize: '32px', marginBottom: '12px' }}>{icon}</div>
-    <h3 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 8px 0' }}>{title}</h3>
-    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>{desc}</p>
-  </motion.div>
-);
-
-// WORKFLOW CARD COMPONENT
-const WorkflowCard = ({ workflow, onEdit, onDelete }) => (
-  <motion.div whileHover={{ y: -8 }} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', padding: '24px' }}>
-    <h3 style={{ fontSize: '18px', fontWeight: '600', margin: '0 0 8px 0', color: 'var(--text-primary)' }}>{workflow.name}</h3>
-    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
-      {workflow.nodes?.length || 0} nodes • Updated {workflow.updatedAt ? new Date(workflow.updatedAt).toLocaleDateString() : 'Never'}
-    </p>
-    <div style={{ display: 'flex', gap: '12px' }}>
-      <motion.button onClick={onEdit} whileHover={{ scale: 1.05 }} style={{ flex: 1, background: 'var(--accent-indigo)', border: 'none', padding: '10px', borderRadius: '6px', color: 'white', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>
-        Edit
-      </motion.button>
-      <motion.button onClick={onDelete} whileHover={{ scale: 1.05 }} style={{ flex: 1, background: 'transparent', border: '1px solid var(--accent-rose)', padding: '10px', borderRadius: '6px', color: 'var(--accent-rose)', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>
-        Delete
-      </motion.button>
-    </div>
-  </motion.div>
-);
-
-// TEMPLATE CARD COMPONENT
-const TemplateCard = ({ template }) => (
-  <motion.div whileHover={{ scale: 1.02 }} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', padding: '32px', textAlign: 'center', cursor: 'pointer' }}>
-    <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>{template.name}</h3>
-    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px' }}>{template.desc}</p>
-    <motion.button whileHover={{ scale: 1.05 }} style={{ background: 'var(--accent-indigo)', border: 'none', padding: '10px 20px', borderRadius: '6px', color: 'white', fontWeight: '600', cursor: 'pointer' }}>
-      Use Template
-    </motion.button>
-  </motion.div>
-);
-
-// ANALYTICS CARD COMPONENT
-const AnalyticsCard = ({ title, stats }) => (
-  <motion.div whileHover={{ y: -4 }} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', padding: '32px' }}>
-    <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>{title}</h3>
-    <p style={{ fontSize: '32px', fontWeight: '700', margin: 0, background: 'linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-      {stats}
-    </p>
-  </motion.div>
-);
-
-// EMPTY STATE COMPONENT
-const EmptyState = ({ onClick }) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-    <p style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '20px' }}>No workflows yet. Create your first one!</p>
-    <motion.button onClick={onClick} whileHover={{ scale: 1.05 }} style={{ background: 'var(--gradient-brand)', border: 'none', padding: '12px 24px', borderRadius: '6px', color: 'white', fontWeight: '600', cursor: 'pointer' }}>
-      Create First Workflow
-    </motion.button>
-  </motion.div>
-);
-
-// DELETE MODAL COMPONENT
-const DeleteModal = ({ onConfirm, onCancel }) => (
-  <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', borderRadius: '12px', padding: '32px', maxWidth: '400px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-      <h3 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)' }}>Delete Workflow?</h3>
-      <p style={{ margin: '0 0 24px 0', color: 'var(--text-secondary)', fontSize: '14px' }}>This cannot be undone.</p>
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <motion.button onClick={onCancel} whileHover={{ scale: 1.05 }} style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-tertiary)', padding: '10px', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '600' }}>
-          Cancel
-        </motion.button>
-        <motion.button onClick={onConfirm} whileHover={{ scale: 1.05 }} style={{ flex: 1, background: 'var(--accent-rose)', border: 'none', padding: '10px', borderRadius: '6px', color: 'white', cursor: 'pointer', fontWeight: '600' }}>
-          Delete
-        </motion.button>
-      </div>
-    </motion.div>
-  </div>
-);
 
 export default DashboardPage;
