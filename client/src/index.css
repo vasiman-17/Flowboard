@@ -787,6 +787,7 @@ body {
   }
 }
 
+
 .result-panel-title {
   font-size: 13px;
   font-weight: 600;
@@ -914,6 +915,7 @@ body {
     transform: scale(1) translateY(0);
   }
 }
+
 
 .modal h2 {
   font-size: 18px;
@@ -1059,4 +1061,44 @@ body {
     opacity: 1;
     transform: translateX(0) scale(1);
   }
+}
+
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN — Mobile-First Approach
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* Tablet & Below (< 768px) ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  h1 { font-size: 36px !important; }
+  h2 { font-size: 28px !important; }
+  h3 { font-size: 16px !important; }
+  
+  section { padding: 60px 20px !important; }
+  button { font-size: 13px !important; padding: 10px 16px !important; }
+  input, textarea { font-size: 16px !important; padding: 10px 12px !important; }
+}
+
+/* Mobile Only (< 480px) ───────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  h1 { font-size: 28px !important; }
+  h2 { font-size: 22px !important; }
+  
+  section { padding: 40px 16px !important; }
+  button { font-size: 12px !important; padding: 8px 12px !important; }
+  input, textarea { font-size: 16px !important; }
+}
+
+/* Desktop Large (> 1200px) ─────────────────────────────────────────────────── */
+@media (min-width: 1200px) {
+  section { padding: 140px 80px !important; }
+}
+
+/* Touch Device Improvements ────────────────────────────────────────────────── */
+@media (hover: none) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  input, textarea { min-height: 44px; }
 }
