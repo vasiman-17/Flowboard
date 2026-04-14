@@ -10,7 +10,7 @@ const verifyToken = (req, res, next) => {
   const token = authHeader.slice(7); // Remove 'Bearer ' prefix
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'flowboard_secret');
     req.user = {
       userId: decoded.userId,
       email: decoded.email,

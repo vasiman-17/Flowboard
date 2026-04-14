@@ -1,160 +1,194 @@
-const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcryptjs');
-const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
+const USERS_FILE = path.join(__dirname, '../data/users.json');
+
+// Ensure data directory exists
+const dataDir = path.dirname(USERS_FILE);
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Initialize users file if it doesn't exist
+if (!fs.existsSync(USERS_FILE)) {
+  fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
+}
+
+// Helper: Read users from file
+const getUsers = () => {
+  try {
+    const data = fs.readFileSync(USERS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+};
+
+// Helper: Write users to file
+const saveUsers = (users) => {
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+};
+
+// Helper: Generate JWT
 const generateJWT = (user) => {
   return jwt.sign(
     {
-      userId: user._id,
+      userId: user.id,
       email: user.email,
       name: user.name,
     },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || 'flowboard_secret',
     { expiresIn: process.env.JWT_EXPIRY || '7d' }
   );
 };
 
-const googleLogin = async (req, res) => {
-  try {
-    const { googleId, email, name, profilePicture } = req.body;
+const authController = {
+  googleLogin: async (req, res) => {
+    try {
+      const { googleId, email, name, profilePicture } = req.body;
 
-    if (!googleId || !email || !name) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+      if (!googleId || !email || !name) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
 
-    // Find or create user
-    let user = await User.findOne({ googleId });
+      let users = getUsers();
+      let user = users.find(u => u.googleId === googleId || u.email === email);
 
-    if (!user) {
-      user = await User.findOne({ email });
-      if (user) {
-        // User exists with same email, link Google ID
-        user.googleId = googleId;
-        user.profilePicture = profilePicture || user.profilePicture;
-      } else {
-        // Create new user
-        user = new User({
+      if (!user) {
+        user = {
+          id: `user_${Date.now()}`,
           googleId,
           email,
           name,
           profilePicture,
-          isVerified: true, // Google authenticated
-        });
+          isVerified: true,
+          createdAt: new Date().toISOString(),
+        };
+        users.push(user);
+        saveUsers(users);
       }
-      await user.save();
-    }
 
-    const token = generateJWT(user);
-    res.json({
-      token,
-      user: {
-        id: user._id,
+      const token = generateJWT(user);
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          profilePicture: user.profilePicture,
+        },
+      });
+    } catch (err) {
+      console.error('Google login error:', err);
+      res.status(500).json({ error: 'Google login failed' });
+    }
+  },
+
+  emailSignup: async (req, res) => {
+    try {
+      const { email, name, password } = req.body;
+
+      if (!email || !name || !password) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      let users = getUsers();
+      const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+      if (existingUser) {
+        return res.status(400).json({ error: 'Email already registered' });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const user = {
+        id: `user_${Date.now()}`,
+        email: email.toLowerCase(),
+        name,
+        passwordHash,
+        isVerified: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      users.push(user);
+      saveUsers(users);
+
+      const token = generateJWT(user);
+      res.status(201).json({
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        },
+      });
+    } catch (err) {
+      console.error('Signup error:', err);
+      res.status(500).json({ error: 'Signup failed' });
+    }
+  },
+
+  emailLogin: async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Missing email or password' });
+      }
+
+      let users = getUsers();
+      const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+      if (!user || !user.passwordHash) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      const token = generateJWT(user);
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        },
+      });
+    } catch (err) {
+      console.error('Login error:', err);
+      res.status(500).json({ error: 'Login failed' });
+    }
+  },
+
+  getCurrentUser: async (req, res) => {
+    try {
+      let users = getUsers();
+      const user = users.find(u => u.id === req.user.userId);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.json({
+        id: user.id,
         email: user.email,
         name: user.name,
         profilePicture: user.profilePicture,
-      },
-    });
-  } catch (err) {
-    console.error('Google login error:', err);
-    res.status(500).json({ error: 'Google login failed' });
-  }
-};
-
-const emailSignup = async (req, res) => {
-  try {
-    const { email, name, password } = req.body;
-
-    if (!email || !name || !password) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      });
+    } catch (err) {
+      console.error('Get user error:', err);
+      res.status(500).json({ error: 'Failed to get user' });
     }
+  },
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
-    }
-
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = new User({
-      email: email.toLowerCase(),
-      name,
-      passwordHash,
-      isVerified: false, // Email verification pending
-    });
-
-    await user.save();
-
-    const token = generateJWT(user);
-    res.status(201).json({
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-      },
-    });
-  } catch (err) {
-    console.error('Signup error:', err);
-    res.status(500).json({ error: 'Signup failed' });
-  }
+  logout: async (req, res) => {
+    res.json({ message: 'Logged out' });
+  },
 };
 
-const emailLogin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Missing email or password' });
-    }
-
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user || !user.passwordHash) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    const token = generateJWT(user);
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-      },
-    });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Login failed' });
-  }
-};
-
-const getCurrentUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId).select('-passwordHash');
-    res.json(user);
-  } catch (err) {
-    console.error('Get user error:', err);
-    res.status(500).json({ error: 'Failed to get user' });
-  }
-};
-
-const logout = async (req, res) => {
-  // For SPA, logout is client-side (token removal)
-  // This endpoint exists for reference
-  res.json({ message: 'Logged out' });
-};
-
-module.exports = {
-  googleLogin,
-  emailSignup,
-  emailLogin,
-  getCurrentUser,
-  logout,
-};
+module.exports = authController;

@@ -1,0 +1,10 @@
+[
+  {
+    "id": "user_1776183914165",
+    "email": "test@flowboard.com",
+    "name": "Test User",
+    "passwordHash": "$2b$10$U0YqXQUtauaLTBu62pQD9OUIxNYzjosL4EQpGKJb5mkLSWkcOAE/O",
+    "isVerified": false,
+    "createdAt": "2026-04-14T16:25:14.165Z"
+  }
+]
