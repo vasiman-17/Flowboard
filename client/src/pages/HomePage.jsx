@@ -133,36 +133,26 @@ const HomePage = () => {
             Create intelligent automation workflows using a visual node-based builder. No programming required. Real-time execution with unlimited possibilities.
           </motion.p>
 
-          <motion.div variants={fadeInUp} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <motion.button
-              onClick={handleGetStarted}
-              whileHover={{ scale: 1.05, boxShadow: '0 12px 34px rgba(99, 102, 241, 0.4)' }}
-              whileTap={{ scale: 0.95 }}
-              style={{
-                padding: '16px 40px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                border: 'none',
-                borderRadius: '8px',
-                color: 'white',
-                fontWeight: '700',
-                fontSize: '16px',
-                cursor: 'pointer',
-                boxShadow: '0 10px 30px rgba(99, 102, 241, 0.3)',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              Start Free →
-            </motion.button>
-            <motion.div
-              style={{
-                fontSize: '14px',
-                color: '#a0a0b8',
-                fontWeight: '500'
-              }}
-            >
-              Simple • Powerful • Free
-            </motion.div>
-          </motion.div>
+          <motion.button
+            variants={fadeInUp}
+            onClick={handleGetStarted}
+            whileHover={{ scale: 1.05, boxShadow: '0 12px 34px rgba(99, 102, 241, 0.4)' }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              padding: '16px 40px',
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              border: 'none',
+              borderRadius: '8px',
+              color: 'white',
+              fontWeight: '700',
+              fontSize: '16px',
+              cursor: 'pointer',
+              boxShadow: '0 10px 30px rgba(99, 102, 241, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Get Started →
+          </motion.button>
         </motion.div>
       </section>
 
@@ -425,102 +415,6 @@ const HomePage = () => {
         </motion.div>
       </section>
 
-      {/* PRICING */}
-      <section style={{ padding: '120px 60px', background: '#151520' }}>
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          variants={containerVariants}
-          style={{ maxWidth: '1000px', margin: '0 auto' }}
-        >
-          <motion.h2
-            variants={fadeInUp}
-            style={{
-              fontSize: '48px',
-              fontWeight: '800',
-              marginBottom: '60px',
-              textAlign: 'center',
-              color: '#ffffff'
-            }}
-          >
-            Simple, Honest Pricing
-          </motion.h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
-            {[
-              { name: 'Free', price: '$0', type: 'Forever', features: ['Unlimited workflows', 'Up to 50 nodes', 'Community support'] },
-              { name: 'Pro', price: '$29', type: '/month', features: ['Unlimited nodes', 'Email support', 'API access', 'Advanced analytics'], highlight: true },
-              { name: 'Enterprise', price: 'Custom', type: '', features: ['Custom limits', 'Dedicated support', 'SSO & SAML', '99.9% SLA'] }
-            ].map((plan, i) => (
-              <motion.div
-                key={i}
-                variants={fadeInUp}
-                whileHover={{ y: -8 }}
-                style={{
-                  background: plan.highlight ? 'linear-gradient(135deg, #2a1a5a 0%, #1e1e2e 100%)' : '#0a0a0f',
-                  border: plan.highlight ? '2px solid #6366f1' : '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '12px',
-                  padding: '40px',
-                  position: 'relative'
-                }}
-              >
-                {plan.highlight && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '-14px',
-                    left: '20px',
-                    background: '#6366f1',
-                    color: 'white',
-                    padding: '4px 12px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: '700'
-                  }}>
-                    RECOMMENDED
-                  </div>
-                )}
-                <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '12px', color: '#ffffff' }}>
-                  {plan.name}
-                </h3>
-                <div style={{ marginBottom: '24px' }}>
-                  <span style={{ fontSize: '42px', fontWeight: '900', color: '#ffffff' }}>
-                    {plan.price}
-                  </span>
-                  {plan.type && <span style={{ fontSize: '14px', color: '#a0a0b8', marginLeft: '8px' }}>{plan.type}</span>}
-                </div>
-                <ul style={{ listStyle: 'none', padding: 0, marginBottom: '32px' }}>
-                  {plan.features.map((f, j) => (
-                    <li key={j} style={{ fontSize: '14px', color: '#c0c0d8', marginBottom: '12px' }}>
-                      ✓ {f}
-                    </li>
-                  ))}
-                </ul>
-                <motion.button
-                  onClick={handleGetStarted}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: plan.highlight ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : 'transparent',
-                    border: plan.highlight ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: plan.highlight ? 'white' : '#ffffff',
-                    borderRadius: '6px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  Get Started
-                </motion.button>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
       {/* FINAL CTA */}
       <section style={{ padding: '120px 60px', background: 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%)', textAlign: 'center' }}>
         <motion.div
@@ -551,7 +445,7 @@ const HomePage = () => {
               lineHeight: '1.7'
             }}
           >
-            Join thousands of users building powerful workflows without code. Start free today, no credit card required.
+            Join thousands of users building powerful workflows without code. Intuitive. Powerful. Ready to use.
           </motion.p>
           <motion.button
             onClick={handleGetStarted}
@@ -571,7 +465,7 @@ const HomePage = () => {
               transition: 'all 0.3s ease'
             }}
           >
-            Start Building Free →
+            Get Started →
           </motion.button>
         </motion.div>
       </section>
